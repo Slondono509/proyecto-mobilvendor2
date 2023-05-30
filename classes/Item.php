@@ -18,7 +18,9 @@ class Item
             $details = $this->getDetails($record->id);   
             foreach ($details as $value) {
                 if ($value->id_items == NULL) {                    
-                    $value->TypeOptions = $this->getTypeOptions($value->id_item_types);                    
+                     $TypeOptions = $this->getTypeOptions($value->id_item_types);                           
+                     $TypeOptions[0]->Active = 1;
+                     $value->TypeOptions = $TypeOptions;
                 }
             }
             return compact('record', 'details');
@@ -59,10 +61,7 @@ class Item
                             i.unit,
                             i.iva,
                             i.price,
-                            CASE 
-                            WHEN (ROW_NUMBER() OVER(PARTITION BY ito.type_id)) = 1 THEN 1
-                                ELSE 0 
-                            END  AS Active
+                             0 AS Active
                     FROM   `item_type_options` ito
                             INNER JOIN items i
                                     ON i.id = ito.item_id
