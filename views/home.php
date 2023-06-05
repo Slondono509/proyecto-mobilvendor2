@@ -30,8 +30,7 @@
                             <span data-bind="text: name_items"></span>
                         </div>
                         <div data-bind="ifnot: name_items">
-                            <select data-bind="foreach: TypeOptions, event: { change: function(data, event) { $root.cambiarValor(event,$index(),TypeOptions,quantity); } }" class="form-select">                            
-                                <option data-bind="text: name_items, value: $index()"></option>
+                            <select data-bind="options: TypeOptions, optionsText: 'name_items', optionsValue: 'ConcatData', event: { change: function(data, event) { $root.cambiarValor(event,$index(),quantity); } }" class="form-select">                                                            
                             </select>                                                                                         
                         </div>
                     </td>                   
@@ -48,7 +47,7 @@
         </table>
     </div>
     <div class="row" style="font-weight:bold; text-size:125%; padding:10px">
-        <div class="col-md-10" style="text-align:right" data-bind="text: total">            
+        <div class="col-md-10" style="text-align:right" data-bind="text: 'TOTAL ' + total()">            
         </div>
         <div class="col-md-2 total" style="text-align:right">
         </div>
@@ -59,10 +58,8 @@
         this.code = ko.observable('AQ10100');
         this.nameItem = ko.observable('');
         this.detail = ko.observable([]);
-        this.total = ko.observable('TOTAL 0');
-
-        this.buscarItem = async () => {
-            this.total('TOTAL 0');
+        
+        this.buscarItem = async () => {            
             this.detail([]);
             this.nameItem('');
             try {
@@ -70,8 +67,7 @@
                     code: this.code()
                 });
                 this.nameItem(service.data.record.name);
-                this.detail(service.data.details);                
-                this.totalF(service.data.details);
+                this.detail(service.data.details);                                
             } catch (error) {
                 console.log(error);
             }
@@ -81,20 +77,24 @@
             return Math.round(num * 100) / 100
         }
 
-        this.cambiarValor = (event, index, TypeOptions, quantity) => {            
-            let posi = event.target.value;
-            let valor = `${this.round(TypeOptions[posi]?.price)} X ${quantity} ${TypeOptions[posi]?.unit}`;            
-            document.getElementById(`tdEditable${index}`).innerHTML = valor;                        
-            this.detail()[index].TypeOptions.forEach(element => {                
-                element.Active = false;                                                        
+        this.cambiarValor = (event, index, quantity) => {            
+            let posi = event.target.value;            
+            let valor = ''            
+            this.detail()[index].TypeOptions.forEach(element => {
+                if(element.ConcatData == posi){
+                    element.Active = true;     
+                    valor = `${this.round(element?.price)} X ${quantity} ${element?.unit}`;            
+                }else{
+                    element.Active = false;     
+                }
             });
-            this.detail()[index].TypeOptions[posi].Active = true;            
-            this.totalF(this.detail());
+            document.getElementById(`tdEditable${index}`).innerHTML = valor;  
+            this.detail(this.detail())                  
         }
 
-        this.totalF = (data) => {
+        this.total = ko.computed(() => {            
             let cont = 0;
-            data.forEach((element, posi) => {
+            this.detail().forEach((element, posi) => {
                 if (element.name_items) {
                     cont += element.price * element.quantity
                 } else {
@@ -105,9 +105,8 @@
                     });
                 }
             });
-            this.total(`TOTAL ${this.round(cont)}`);
-        }
-
+            return this.round(cont);
+        }, this);
     };
 
     ko.applyBindings(new ViewModel());

@@ -52,7 +52,7 @@ class Item
 
     public function getTypeOptions($id)
     {
-        $query = 'SELECT ito.id  AS id_tem_type_options,
+        $query = "SELECT ito.id  AS id_tem_type_options,
                             it.id   AS id_item_types,
                             it.name AS name_item_types,
                             i.id    AS id_items,
@@ -61,13 +61,14 @@ class Item
                             i.unit,
                             i.iva,
                             i.price,
-                             0 AS Active
+                            0 AS Active,
+                            CONCAT(ito.id, '|', i.id) AS ConcatData
                     FROM   `item_type_options` ito
                             INNER JOIN items i
                                     ON i.id = ito.item_id
                             INNER JOIN item_types it
                                     ON it.id = ito.type_id
-                    WHERE  ito.type_id = ?';
+                    WHERE  ito.type_id = ?";
         return Connection::getQuery($query, array($id))->toArray();
     }
 }
